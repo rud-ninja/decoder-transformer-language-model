@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer language model</title>
+</head>
+<body>
+    <h1>Print generative text</h1>
+    
+    <label for="userInput">Enter some words to begin with:</label>
+    <input type="text" id="userInput" name="userInput" />
+
+    <label for="numericInput">Enter max tokens to be generated:</label>
+    <input type="number" id="numericInput" name="numericInput" />
+
+    <button onclick="startStream()">Start Generating</button>
+
+    <div id="gap"><p></p></div>
+    <div id="result"></div>
+
+    <script>
+        let eventSource;
+
+        function startStream() {
+            const userInput = document.getElementById('userInput').value;
+            const numericInput = document.getElementById('numericInput').value;
+            const resultDiv = document.getElementById('result');
+        
+            resultDiv.innerHTML = '';
+            resultDiv.innerHTML += `${userInput} `;
+            
+            eventSource = new EventSource(`/stream?userInput=${userInput}&numericInput=${numericInput}`);
+
+            
+            eventSource.onmessage = function(event) {
+                const resultDiv = document.getElementById('result');
+
+                if (event.data === 'STREAM_END') {
+                    resultDiv.innerHTML += '<p>Finished generation</p>';
+                    eventSource.close();
+                } else {
+                    resultDiv.innerHTML += event.data;
+                }
+            };
+        }
+
+        function stopStream() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        }
+    </script>
+</body>
+</html>
